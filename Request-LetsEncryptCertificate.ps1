@@ -62,11 +62,11 @@ Set-Content -Value $authData.Body -Path $filePath
 
 # Upload acme-challenge file to blob storage
 Write-Output "Connecting to $storageAccountName"
-$storageAccount = Get-AzureRmStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
+$storageAccount = Get-AzStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
 $blobName = ".well-known\acme-challenge\" + $authData.FileName
 $blobContext = $storageAccount.Context
 Write-Output "Creating blob $blobName in container $blobContainerName"
-Set-AzureStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName -Force
+Set-AzStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName -Force
 
 # Send challenge
 Write-Output "Sending challenge"
@@ -83,24 +83,24 @@ $certificateData = New-PACertificate $domainName
 if ($appGatewayName) {
     # Define Application Gateway
     Write-Output "Using App Gateway $appGatewayName"
-    $appGateway = Get-AzureRmApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
+    $appGateway = Get-AzApplicationGateway -ResourceGroupName $appGatewayResourceGroupName -Name $appGatewayName
 
     # Retrieve list of current Application Gateway certificates
-    $certificateList = $(Get-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGateway).Name
+    $certificateList = $(Get-AzApplicationGatewaySslCertificate -ApplicationGateway $appGateway).Name
     Write-Output "Available certificates on $($appGatewayName): `n $($certificateList)"
 
     # Check for renewal or new certificate
     if ($certificateList -contains $certificateName) {
         Write-Output "Updating existing certificate $certificateName"
-        Set-AzureRmApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+        Set-AzApplicationGatewaySSLCertificate -Name $certificateName -ApplicationGateway $appGateway -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
     } else {
         Write-Output "Creating new certificate $certificateName"
-        Add-AzureRmApplicationGatewaySslCertificate -ApplicationGateway $appGateway -Name $certificateName -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
+        Add-AzApplicationGatewaySslCertificate -ApplicationGateway $appGateway -Name $certificateName -CertificateFile $certificateData.PfxFullChain -Password $certificateData.PfxPass
     }
 
     # Write configuration back to App Gateway
     Write-Output "Writing updated configuration to $appGatewayName"
-    Set-AzureRmApplicationGateway -ApplicationGateway $appGateway
+    Set-AzApplicationGateway -ApplicationGateway $appGateway
 }
 
 if ($keyVaultName) {
@@ -111,5 +111,5 @@ if ($keyVaultName) {
     # Write key to Key Vault
     Write-Output "Writing certificate as Secret to Key Vault $keyVaultName"
     $secretValue = ConvertTo-SecureString $fileContentEncoded -AsPlainText -Force
-    Set-AzureKeyVaultSecret -VaultName $keyVaultName -Name $certificateName -SecretValue $secretValue
+    Set-AzKeyVaultSecret -VaultName $keyVaultName -Name $certificateName -SecretValue $secretValue
 }
