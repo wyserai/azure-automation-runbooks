@@ -27,6 +27,9 @@ param(
     [string] $certificateName = "LetsEncrypt",
 
     [Parameter(mandatory=$false)]
+    [string] $certificatePassword,
+
+    [Parameter(mandatory=$false)]
     [string] $keyVaultName
 )
 
@@ -44,7 +47,7 @@ Set-PAServer LE_PROD
 # Create new account and order
 Write-Output "Creating new account and order for domain $domainName and email address $emailAddress"
 New-PAAccount -AcceptTOS -Contact $emailAddress -KeyLength 2048 -Force
-New-PAOrder $domainName -Force
+New-PAOrder -Domain $domainName -PfxPass $certificatePassword -Force
 
 # Get authorizations
 Write-Output "Retrieving authorizations for HTTP01"
