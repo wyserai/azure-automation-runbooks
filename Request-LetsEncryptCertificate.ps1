@@ -65,9 +65,8 @@ Set-Content -Value $authData.Body -Path $filePath
 
 # Upload acme-challenge file to blob storage
 Write-Output "Connecting to $storageAccountName"
-$storageAccount = Get-AzStorageAccount -ResourceGroupName $storageAccountResourceGroupName -Name $storageAccountName
 $blobName = ".well-known\acme-challenge\" + $authData.FileName
-$blobContext = $storageAccount.Context
+$blobContext = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
 Write-Output "Creating blob $blobName in container $blobContainerName"
 Set-AzStorageBlobContent -File $filePath -Container $blobContainerName -Context $blobContext -Blob $blobName -Force
 
